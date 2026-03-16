@@ -1,9 +1,13 @@
 from typing import Literal
 
-import dotenv
 from openai import OpenAI
 
-from models.completion.base import BaseCompletion
+from opengates.messages.base import BaseMessage
+from opengates.models.completion.base import BaseCompletion
+
+__all__ = [
+    "OpenAICompletion",
+]
 
 # https://developers.openai.com/api/docs/models/
 
@@ -18,23 +22,20 @@ MODELS = Literal[
 
 
 class OpenAICompletion(BaseCompletion):
-    def __init__(self, api_key_env_var: str = "OPENAI_API_KEY", model_name: MODELS = "gpt-5-2025-08-07"):
+    def __init__(
+        self,
+        api_key_env_var: str = "OPENAI_API_KEY",
+        model_name: MODELS = "gpt-5-mini-2025-08-07",
+    ):
         super().__init__(api_key_env_var=api_key_env_var, model_name=model_name)
-
-        # Initialize OpenAI client
         self.client = OpenAI(api_key=self.api_key)
 
-    def generate(self, prompt: str) -> str:
+    def generate(
+        self,
+        history: list[BaseMessage] | BaseMessage | str,
+    ) -> str:
         response = self.client.responses.create(
             model=self.model_name,
-            input=prompt,
+            input=self._format_history(history),
         )
         return response.text
-
-
-if __name__ == "__main__":
-    dotenv.load_dotenv()
-    llm = OpenAICompletion()
-    prompt = "What is the capital of France?"
-    response = llm.generate(prompt)
-    print(response)
