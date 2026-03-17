@@ -1,10 +1,14 @@
 import logging
 import os
+from abc import abstractmethod
+from typing import Generic, TypeVar
 
 import tenacity
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, PrivateAttr
 
+from opengates.guardrails.base import BaseGuardrail
 from opengates.messages.assistant import BaseMessage
+from opengates.messages.content.text import TextMessageContent
 from opengates.messages.user import UserMessage
 
 __all__ = [
@@ -19,19 +23,43 @@ MIN_WAIT = 1
 MAX_WAIT = 60
 STOP_AFTER_ATTEMPT = 5
 
+ClientT = TypeVar("ClientT")
 
-class BaseCompletion(BaseModel):
+
+class BaseCompletion(BaseModel, Generic[ClientT]):
+    model_config = ConfigDict(extra="forbid")
     api_key: str
     model_name: str
-    client: object | None = None
+    guardrails: list[BaseGuardrail]
+
+    _client: ClientT | None = PrivateAttr(default=None)
 
     def __init__(
         self,
         api_key_env_var: str,
         model_name: str,
+        guardrails: list[BaseGuardrail] | None = None,
     ):
         api_key = os.getenv(api_key_env_var)
-        super().__init__(api_key=api_key, model_name=model_name)
+        if not api_key:
+            raise ValueError(
+                f"API key not found in environment variable: {api_key_env_var}"
+            )
+        super().__init__(
+            api_key=api_key,
+            model_name=model_name,
+            guardrails=guardrails or [],
+        )
+
+    @property
+    def client(self) -> ClientT:
+        if self._client is None:
+            self._client = self._initialize_client()
+        return self._client
+
+    @abstractmethod
+    def _initialize_client(self) -> ClientT:
+        raise NotImplementedError
 
     @tenacity.retry(
         wait=tenacity.wait_exponential(
@@ -45,28 +73,46 @@ class BaseCompletion(BaseModel):
         self,
         history: list[BaseMessage] | BaseMessage | str,
     ) -> str:
-        return self._generate_logic(history)
+        # Format history
+        history_list = self._format_history(history)
+
+        # Apply input guardrails
+        for guardrail in self.guardrails:
+            for msg in history_list:
+                for content in msg.content:
+                    if isinstance(content, TextMessageContent):
+                        guardrail.apply(content.text)
+
+        # Generate response
+        history_raw = self._history_to_raw(history_list)
+        response = self._generate_logic(history_raw)
+
+        # Apply output guardrails
+        for guardrail in self.guardrails:
+            response = guardrail.apply(response)
+
+        return response
 
     def _generate_logic(
         self,
-        history: list[BaseMessage] | BaseMessage | str,
+        history_raw: list[dict],
     ) -> str:
         raise NotImplementedError
 
     def _format_history(
         self,
         history: list[BaseMessage] | BaseMessage | str,
-    ) -> list[dict]:
-        history_list: list[BaseMessage]
+    ) -> list[BaseMessage]:
         if isinstance(history, str):
-            history_list = [UserMessage(content=history)]
+            return [UserMessage(content=history)]
         elif isinstance(history, BaseMessage):
-            history_list = [history]
+            return [history]
         elif isinstance(history, list):
-            history_list = history
+            return history
         else:
             raise ValueError("Invalid history format")
 
+    def _history_to_raw(self, history_list: list[BaseMessage]) -> list[dict]:
         return [
             msg.model_dump_json(exclude_none=True, serialize_as_any=True)
             for msg in history_list

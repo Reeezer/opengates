@@ -2,7 +2,7 @@ from typing import Literal
 
 from openai import OpenAI
 
-from opengates.messages.base import BaseMessage
+from opengates.guardrails.base import BaseGuardrail
 from opengates.models.completion.base import BaseCompletion
 
 __all__ = [
@@ -21,23 +21,28 @@ MODELS = Literal[
 ]
 
 
-class OpenAICompletion(BaseCompletion):
-    client: OpenAI
-
+class OpenAICompletion(BaseCompletion[OpenAI]):
     def __init__(
         self,
         api_key_env_var: str = "OPENAI_API_KEY",
         model_name: MODELS = "gpt-5-mini-2025-08-07",
+        guardrails: list[BaseGuardrail] | None = None,
     ):
-        super().__init__(api_key_env_var=api_key_env_var, model_name=model_name)
-        self.client = OpenAI(api_key=self.api_key)
+        super().__init__(
+            api_key_env_var=api_key_env_var,
+            model_name=model_name,
+            guardrails=guardrails or [],
+        )
+
+    def _initialize_client(self) -> OpenAI:
+        return OpenAI(api_key=self.api_key)
 
     def _generate_logic(
         self,
-        history: list[BaseMessage] | BaseMessage | str,
+        history_raw: list[dict],
     ) -> str:
         response = self.client.responses.create(
             model=self.model_name,
-            input=self._format_history(history),
+            input=history_raw,
         )
         return response.text
