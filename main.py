@@ -2,7 +2,7 @@ import dotenv
 
 from opengates.ai_gateway.guardrails import (
     ForbiddenTermsGuardrail,
-    PIIDetectionGuardrail,
+    PIIGuardrail,
 )
 from opengates.messages import UserMessage
 from opengates.models.completion import GoogleCompletion
@@ -10,7 +10,7 @@ from opengates.models.completion import GoogleCompletion
 if __name__ == "__main__":
     dotenv.load_dotenv()
     guardrails = [
-        PIIDetectionGuardrail(),
+        PIIGuardrail(),
         ForbiddenTermsGuardrail(forbidden_terms=["forbidden"]),
     ]
     llm = GoogleCompletion(guardrails=guardrails)
