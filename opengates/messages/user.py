@@ -7,5 +7,8 @@ __all__ = [
 
 
 class UserMessage(BaseMessage):
-    def __init__(self, content: list[BaseMessageContent] | BaseMessageContent | str):
+    def __init__(
+        self,
+        content: list[BaseMessageContent] | BaseMessageContent | str,
+    ):
         super().__init__(role="user", content=content)

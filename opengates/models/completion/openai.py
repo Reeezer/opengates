@@ -22,6 +22,8 @@ MODELS = Literal[
 
 
 class OpenAICompletion(BaseCompletion):
+    client: OpenAI
+
     def __init__(
         self,
         api_key_env_var: str = "OPENAI_API_KEY",
