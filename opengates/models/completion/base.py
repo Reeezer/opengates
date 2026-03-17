@@ -13,14 +13,12 @@ __all__ = [
     "BaseCompletion",
 ]
 
-logging.basicConfig(level=logging.DEBUG)
-logger = logging.getLogger(__name__)
-
 MULTIPLIER = 1
 MIN_WAIT = 1
 MAX_WAIT = 60
-STOP_AFTER_ATTEMPT = 5
+STOP_AFTER_ATTEMPT = 10
 
+logger = logging.getLogger(__name__)
 ClientT = TypeVar("ClientT")
 
 
@@ -43,6 +41,7 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
             raise ValueError(
                 f"API key not found in environment variable: {api_key_env_var}"
             )
+
         super().__init__(
             api_key=api_key,
             model_name=model_name,
@@ -65,7 +64,8 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         ),
         stop=tenacity.stop_after_attempt(max_attempt_number=STOP_AFTER_ATTEMPT),
         retry=tenacity.retry_if_exception_type((TimeoutError, ConnectionError)),
-        before=tenacity.before_log(logger, logging.INFO),
+        before_sleep=tenacity.before_sleep_log(logger, logging.WARNING),
+        reraise=True,
     )
     def generate(
         self,
@@ -89,7 +89,7 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         # Apply output guardrails
         for guardrail in self.guardrails:
             if guardrail.in_output:
-                response = guardrail.apply(response)
+                guardrail.apply(response)
 
         return response
 
@@ -113,7 +113,10 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         else:
             raise ValueError("Invalid history format")
 
-    def _history_to_raw(self, history_list: list[BaseMessage]) -> list[dict]:
+    def _history_to_raw(
+        self,
+        history_list: list[BaseMessage],
+    ) -> list[dict]:
         return [
             msg.model_dump_json(exclude_none=True, serialize_as_any=True)
             for msg in history_list

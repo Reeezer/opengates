@@ -14,6 +14,6 @@ if __name__ == "__main__":
         ForbiddenTermsGuardrail(forbidden_terms=["forbidden"]),
     ]
     llm = GoogleCompletion(guardrails=guardrails)
-    history = UserMessage(content="What is the capital of France? forbidden")
+    history = UserMessage(content="What is the capital of France? forbidde")
     response = llm.generate(history)
     print(response)
