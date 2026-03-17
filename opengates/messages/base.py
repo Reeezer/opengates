@@ -15,10 +15,17 @@ class BaseMessage(BaseModel, ABC):
     role: str
     content: list[BaseMessageContent]
 
-    def __init__(self, role: str, content: list[BaseMessageContent] | BaseMessageContent | str):
+    def __init__(
+        self,
+        role: str,
+        content: list[BaseMessageContent] | BaseMessageContent | str,
+    ):
         super().__init__(role=role, content=self._format_content(content))
 
-    def _format_content(self, content: list[BaseMessageContent] | BaseMessageContent | str) -> list[BaseMessageContent]:
+    def _format_content(
+        self,
+        content: list[BaseMessageContent] | BaseMessageContent | str,
+    ) -> list[BaseMessageContent]:
         if isinstance(content, str):
             return [TextMessageContent(text=content)]
         elif isinstance(content, BaseMessageContent):
