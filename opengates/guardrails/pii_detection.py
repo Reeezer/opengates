@@ -8,6 +8,9 @@ PII_TERMS = ["name", "email", "phone", "address"]
 
 
 class PIIDetectionGuardrail(BaseGuardrail):
+    in_input: bool = True
+    in_output: bool = True
+
     def apply(
         self,
         input: str,

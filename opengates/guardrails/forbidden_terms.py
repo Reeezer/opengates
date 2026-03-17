@@ -7,6 +7,8 @@ __all__ = [
 
 class ForbiddenTermsGuardrail(BaseGuardrail):
     forbidden_terms: list[str]
+    in_input: bool = True
+    in_output: bool = True
 
     def apply(
         self,

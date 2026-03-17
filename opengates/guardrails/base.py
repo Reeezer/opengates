@@ -9,6 +9,8 @@ __all__ = [
 
 class BaseGuardrail(BaseModel, ABC):
     model_config = ConfigDict(extra="forbid")
+    in_input: bool
+    in_output: bool
 
     def apply(
         self,

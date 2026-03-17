@@ -78,10 +78,11 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
 
         # Apply input guardrails
         for guardrail in self.guardrails:
-            for msg in history_list:
-                for content in msg.content:
-                    if isinstance(content, TextMessageContent):
-                        guardrail.apply(content.text)
+            if guardrail.in_input:
+                for msg in history_list:
+                    for content in msg.content:
+                        if isinstance(content, TextMessageContent):
+                            guardrail.apply(content.text)
 
         # Generate response
         history_raw = self._history_to_raw(history_list)
@@ -89,7 +90,8 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
 
         # Apply output guardrails
         for guardrail in self.guardrails:
-            response = guardrail.apply(response)
+            if guardrail.in_output:
+                response = guardrail.apply(response)
 
         return response
 
