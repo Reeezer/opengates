@@ -38,7 +38,7 @@ class BaseCompletion(BaseModel):
             multiplier=MULTIPLIER, min=MIN_WAIT, max=MAX_WAIT
         ),
         stop=tenacity.stop_after_attempt(max_attempt_number=STOP_AFTER_ATTEMPT),
-        reraise=(ValueError,),
+        retry=tenacity.retry_if_exception_type((TimeoutError, ConnectionError)),
         before=tenacity.before_log(logger, logging.INFO),
     )
     def generate(
