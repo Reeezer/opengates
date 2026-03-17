@@ -1,4 +1,4 @@
-from abc import ABC
+from abc import ABC, abstractmethod
 
 from pydantic import BaseModel, ConfigDict
 
@@ -12,6 +12,7 @@ class BaseGuardrail(BaseModel, ABC):
     in_input: bool
     in_output: bool
 
+    @abstractmethod
     def apply(
         self,
         input: str,

@@ -95,6 +95,7 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
 
         return response
 
+    @abstractmethod
     def _generate_logic(
         self,
         history_raw: list[dict],
