@@ -1,7 +1,9 @@
 import dotenv
 
-from opengates.guardrails import PIIDetectionGuardrail
-from opengates.guardrails.forbidden_terms import ForbiddenTermsGuardrail
+from opengates.ai_gateway.guardrails import (
+    ForbiddenTermsGuardrail,
+    PIIDetectionGuardrail,
+)
 from opengates.messages import UserMessage
 from opengates.models.completion import GoogleCompletion
 

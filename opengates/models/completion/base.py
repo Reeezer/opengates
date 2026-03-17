@@ -6,10 +6,8 @@ from typing import Generic, TypeVar
 import tenacity
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
-from opengates.guardrails.base import BaseGuardrail
-from opengates.messages.assistant import BaseMessage
-from opengates.messages.content.text import TextMessageContent
-from opengates.messages.user import UserMessage
+from opengates.ai_gateway.guardrails import BaseGuardrail
+from opengates.messages import BaseMessage, TextMessageContent, UserMessage
 
 __all__ = [
     "BaseCompletion",

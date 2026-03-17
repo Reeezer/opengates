@@ -2,8 +2,8 @@ from typing import Literal
 
 from google import genai
 
-from opengates.guardrails.base import BaseGuardrail
-from opengates.models.completion.base import BaseCompletion
+from opengates.ai_gateway.guardrails import BaseGuardrail
+from opengates.models.completion import BaseCompletion
 
 __all__ = [
     "GoogleCompletion",

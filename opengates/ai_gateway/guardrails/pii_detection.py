@@ -1,4 +1,4 @@
-from opengates.guardrails.base import BaseGuardrail
+from opengates.ai_gateway.guardrails.base import BaseGuardrail
 
 __all__ = [
     "PIIDetectionGuardrail",
