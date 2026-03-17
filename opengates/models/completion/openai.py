@@ -30,7 +30,7 @@ class OpenAICompletion(BaseCompletion):
         super().__init__(api_key_env_var=api_key_env_var, model_name=model_name)
         self.client = OpenAI(api_key=self.api_key)
 
-    def generate(
+    def _generate_logic(
         self,
         history: list[BaseMessage] | BaseMessage | str,
     ) -> str:

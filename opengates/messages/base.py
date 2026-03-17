@@ -1,6 +1,6 @@
 from abc import ABC
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
 
 from opengates.messages.content import BaseMessageContent
 from opengates.messages.content.text import TextMessageContent
@@ -11,6 +11,7 @@ __all__ = [
 
 
 class BaseMessage(BaseModel, ABC):
+    model_config = ConfigDict(extra="forbid")
     role: str
     content: list[BaseMessageContent]
 

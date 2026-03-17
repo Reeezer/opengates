@@ -8,6 +8,5 @@ __all__ = [
 
 
 class BaseMessageContent(BaseModel, ABC):
-    type: str
-
     model_config = ConfigDict(extra="forbid")
+    type: str

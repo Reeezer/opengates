@@ -27,10 +27,11 @@ class GoogleCompletion(BaseCompletion):
         super().__init__(api_key_env_var=api_key_env_var, model_name=model_name)
         self.client = genai.Client(api_key=self.api_key)
 
-    def generate(
+    def _generate_logic(
         self,
         history: list[BaseMessage] | BaseMessage | str,
     ) -> str:
+        raise NotImplementedError("Google Gemini API is currently not working as expected. Please use OpenAI models instead.")
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=self._format_history(history),
