@@ -6,9 +6,7 @@ from typing import Generic, TypeVar
 import tenacity
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
-from opengates.ai_gateway.policy.guardrails import BaseGuardrail
-from opengates.ai_gateway.policy.guardrails.base import GuardrailAction
-from opengates.messages import BaseMessage, UserMessage
+from opengates.messages import BaseMessage
 
 __all__ = [
     "BaseCompletion",
@@ -68,44 +66,17 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
     def generate(
         self,
         history: list[BaseMessage],
-    ) -> str:
+    ) -> dict[str, str]:
         history_raw = self._history_to_raw(history)
         response = self._generate_logic(history_raw)
         return response
-
-    def _apply_guardrails(
-        self,
-        guardrails: list[BaseGuardrail],
-        text: str,
-    ) -> None:
-        for guardrail in guardrails:
-            guardrail_result = guardrail.apply(text)
-            if guardrail_result == GuardrailAction.BLOCK:
-                raise ValueError("Content contains forbidden content")
-            elif guardrail_result == GuardrailAction.WARN:
-                logger.warning(
-                    f"Guardrail {guardrail.__class__.__name__} triggered: {text}"
-                )
 
     @abstractmethod
     def _generate_logic(
         self,
         history_raw: list[dict],
-    ) -> str:
+    ) -> dict[str, str]:
         raise NotImplementedError
-
-    def _format_history(
-        self,
-        history: list[BaseMessage] | BaseMessage | str,
-    ) -> list[BaseMessage]:
-        if isinstance(history, str):
-            return [UserMessage(content=history)]
-        elif isinstance(history, BaseMessage):
-            return [history]
-        elif isinstance(history, list):
-            return history
-        else:
-            raise ValueError("Invalid history format")
 
     def _history_to_raw(
         self,

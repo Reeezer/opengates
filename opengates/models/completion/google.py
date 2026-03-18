@@ -36,9 +36,9 @@ class GoogleCompletion(BaseCompletion[genai.Client]):
     def _generate_logic(
         self,
         history_raw: list[dict],
-    ) -> str:
+    ) -> dict[str, str]:
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=history_raw,
         )
-        return response.text
+        return response

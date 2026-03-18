@@ -43,11 +43,12 @@ class AIGateway(BaseModel):
         # Generate response
         completion = self.model_registry.get(model_name=model_name)
         response = completion.generate(history_list)
+        response_text = response.text
 
         # Apply output guardrails
-        policy.apply_output_guardrails(response)
+        policy.apply_output_guardrails(response_text)
 
-        return response
+        return response_text
 
     def _format_history(
         self,

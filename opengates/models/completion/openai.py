@@ -39,9 +39,9 @@ class OpenAICompletion(BaseCompletion[OpenAI]):
     def _generate_logic(
         self,
         history_raw: list[dict],
-    ) -> str:
+    ) -> dict[str, str]:
         response = self.client.responses.create(
             model=self.model_name,
             input=history_raw,
         )
-        return response.text
+        return response
