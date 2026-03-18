@@ -2,7 +2,7 @@ from typing import Literal
 
 from openai import OpenAI
 
-from opengates.ai_gateway.guardrails import BaseGuardrail
+from opengates.ai_gateway.pipeline.guardrails import BaseGuardrail
 from opengates.models.completion import BaseCompletion
 
 __all__ = [

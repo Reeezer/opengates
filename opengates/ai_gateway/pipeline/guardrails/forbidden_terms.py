@@ -1,4 +1,4 @@
-from opengates.ai_gateway.guardrails.base import BaseGuardrail
+from opengates.ai_gateway.pipeline.guardrails.base import BaseGuardrail, GuardrailAction
 
 __all__ = [
     "ForbiddenTermsGuardrail",
@@ -13,7 +13,8 @@ class ForbiddenTermsGuardrail(BaseGuardrail):
     def apply(
         self,
         input: str,
-    ):
+    ) -> GuardrailAction:
         for term in self.forbidden_terms:
             if term in input:
-                raise ValueError(f"Input contains forbidden term: {term}")
+                return self.output_action
+        return GuardrailAction.ALLOW

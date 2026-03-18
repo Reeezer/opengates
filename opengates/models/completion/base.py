@@ -6,7 +6,8 @@ from typing import Generic, TypeVar
 import tenacity
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
-from opengates.ai_gateway.guardrails import BaseGuardrail
+from opengates.ai_gateway.pipeline.guardrails import BaseGuardrail
+from opengates.ai_gateway.pipeline.guardrails.base import GuardrailAction
 from opengates.messages import BaseMessage, TextMessageContent, UserMessage
 
 __all__ = [
@@ -75,23 +76,41 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         history_list = self._format_history(history)
 
         # Apply input guardrails
-        for guardrail in self.guardrails:
-            if guardrail.in_input:
-                for msg in history_list:
-                    for content in msg.content:
-                        if isinstance(content, TextMessageContent):
-                            guardrail.apply(content.text)
+        input_guardrails = [g for g in self.guardrails if g.in_input]
+        for msg in history_list:
+            for content in msg.content:
+                if isinstance(content, TextMessageContent):
+                    self._apply_guardrails(
+                        guardrails=input_guardrails,
+                        text=content.text,
+                    )
 
         # Generate response
         history_raw = self._history_to_raw(history_list)
         response = self._generate_logic(history_raw)
 
         # Apply output guardrails
-        for guardrail in self.guardrails:
-            if guardrail.in_output:
-                guardrail.apply(response)
+        output_guardrails = [g for g in self.guardrails if g.in_output]
+        self._apply_guardrails(
+            guardrails=output_guardrails,
+            text=response,
+        )
 
         return response
+
+    def _apply_guardrails(
+        self,
+        guardrails: list[BaseGuardrail],
+        text: str,
+    ) -> None:
+        for guardrail in guardrails:
+            guardrail_result = guardrail.apply(text)
+            if guardrail_result == GuardrailAction.BLOCK:
+                raise ValueError("Content contains forbidden content")
+            elif guardrail_result == GuardrailAction.WARN:
+                logger.warning(
+                    f"Guardrail {guardrail.__class__.__name__} triggered: {text}"
+                )
 
     @abstractmethod
     def _generate_logic(

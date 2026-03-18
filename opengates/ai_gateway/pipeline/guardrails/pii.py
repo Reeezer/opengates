@@ -1,6 +1,6 @@
 import re
 
-from opengates.ai_gateway.guardrails.base import BaseGuardrail
+from opengates.ai_gateway.pipeline.guardrails.base import BaseGuardrail, GuardrailAction
 
 __all__ = [
     "PIIGuardrail",
@@ -24,11 +24,11 @@ class PIIGuardrail(BaseGuardrail):
     def apply(
         self,
         input: str,
-    ):
+    ) -> GuardrailAction:
         # FIXME Placeholder implementation for PII detection
         # In a real implementation, this would use a machine learning model
         # or a more comprehensive set of regex patterns to detect PII.
-        for name, pattern in PII_PATTERNS.items():
+        for _, pattern in PII_PATTERNS.items():
             if pattern.search(input):
-                raise ValueError(f"Potential PII detected: {name}")
-        return input
+                return self.output_action
+        return GuardrailAction.ALLOW

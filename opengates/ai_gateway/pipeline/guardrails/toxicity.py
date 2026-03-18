@@ -1,4 +1,4 @@
-from opengates.ai_gateway.guardrails.base import BaseGuardrail
+from opengates.ai_gateway.pipeline.guardrails.base import BaseGuardrail, GuardrailAction
 
 __all__ = [
     "ToxicityGuardrail",
@@ -40,11 +40,11 @@ class ToxicityGuardrail(BaseGuardrail):
     def apply(
         self,
         input: str,
-    ):
+    ) -> GuardrailAction:
         # FIXME Placeholder implementation for toxicity detection
         # In a real implementation, this would use a machine learning model
         # or a more comprehensive list of terms and context-aware analysis to detect toxicity.
         for term in TOXICITY_TERMS:
             if term in input.lower():
-                raise ValueError(f"Input contains potential toxic term: {term}")
-        return input
+                return self.output_action
+        return GuardrailAction.ALLOW
