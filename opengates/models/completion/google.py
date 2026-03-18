@@ -2,8 +2,7 @@ from typing import Literal
 
 from google import genai
 
-from opengates.ai_gateway.pipeline.guardrails import BaseGuardrail
-from opengates.models.completion import BaseCompletion
+from opengates.models.completion.base import BaseCompletion
 
 __all__ = [
     "GoogleCompletion",
@@ -23,15 +22,15 @@ class GoogleCompletion(BaseCompletion[genai.Client]):
         self,
         api_key_env_var: str = "GOOGLE_API_KEY",
         model_name: MODELS = "gemini-2.5-flash-lite",
-        guardrails: list[BaseGuardrail] | None = None,
     ):
         super().__init__(
             api_key_env_var=api_key_env_var,
             model_name=model_name,
-            guardrails=guardrails or [],
         )
 
-    def _initialize_client(self) -> genai.Client:
+    def _initialize_client(
+        self,
+    ) -> genai.Client:
         return genai.Client(api_key=self.api_key)
 
     def _generate_logic(

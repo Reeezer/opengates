@@ -6,9 +6,9 @@ from typing import Generic, TypeVar
 import tenacity
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
-from opengates.ai_gateway.pipeline.guardrails import BaseGuardrail
-from opengates.ai_gateway.pipeline.guardrails.base import GuardrailAction
-from opengates.messages import BaseMessage, TextMessageContent, UserMessage
+from opengates.ai_gateway.policy.guardrails import BaseGuardrail
+from opengates.ai_gateway.policy.guardrails.base import GuardrailAction
+from opengates.messages import BaseMessage, UserMessage
 
 __all__ = [
     "BaseCompletion",
@@ -27,7 +27,6 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
     model_config = ConfigDict(extra="forbid")
     api_key: str
     model_name: str
-    guardrails: list[BaseGuardrail]
 
     _client: ClientT | None = PrivateAttr(default=None)
 
@@ -35,7 +34,6 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         self,
         api_key_env_var: str,
         model_name: str,
-        guardrails: list[BaseGuardrail] | None = None,
     ):
         api_key = os.getenv(api_key_env_var)
         if not api_key:
@@ -46,7 +44,6 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         super().__init__(
             api_key=api_key,
             model_name=model_name,
-            guardrails=guardrails or [],
         )
 
     @property
@@ -70,32 +67,10 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
     )
     def generate(
         self,
-        history: list[BaseMessage] | BaseMessage | str,
+        history: list[BaseMessage],
     ) -> str:
-        # Format history
-        history_list = self._format_history(history)
-
-        # Apply input guardrails
-        input_guardrails = [g for g in self.guardrails if g.in_input]
-        for msg in history_list:
-            for content in msg.content:
-                if isinstance(content, TextMessageContent):
-                    self._apply_guardrails(
-                        guardrails=input_guardrails,
-                        text=content.text,
-                    )
-
-        # Generate response
-        history_raw = self._history_to_raw(history_list)
+        history_raw = self._history_to_raw(history)
         response = self._generate_logic(history_raw)
-
-        # Apply output guardrails
-        output_guardrails = [g for g in self.guardrails if g.in_output]
-        self._apply_guardrails(
-            guardrails=output_guardrails,
-            text=response,
-        )
-
         return response
 
     def _apply_guardrails(
@@ -134,9 +109,9 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
 
     def _history_to_raw(
         self,
-        history_list: list[BaseMessage],
+        history: list[BaseMessage],
     ) -> list[dict]:
         return [
             msg.model_dump_json(exclude_none=True, serialize_as_any=True)
-            for msg in history_list
+            for msg in history
         ]

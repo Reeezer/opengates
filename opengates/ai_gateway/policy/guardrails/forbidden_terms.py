@@ -1,4 +1,4 @@
-from opengates.ai_gateway.pipeline.guardrails.base import BaseGuardrail, GuardrailAction
+from opengates.ai_gateway.policy.guardrails.base import BaseGuardrail, GuardrailAction
 
 __all__ = [
     "ForbiddenTermsGuardrail",
