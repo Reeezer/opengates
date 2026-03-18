@@ -45,7 +45,7 @@ class ResolvedPolicy(BaseModel):
     def apply_input_guardrails(
         self,
         text: str,
-    ):
+    ) -> None:
         self._apply_guardrails(
             guardrails=self.input_guardrails,
             text=text,
@@ -54,7 +54,7 @@ class ResolvedPolicy(BaseModel):
     def apply_output_guardrails(
         self,
         text: str,
-    ):
+    ) -> None:
         self._apply_guardrails(
             guardrails=self.output_guardrails,
             text=text,
@@ -64,7 +64,7 @@ class ResolvedPolicy(BaseModel):
         self,
         guardrails: list[BaseGuardrail],
         text: str,
-    ):
+    ) -> None:
         for guardrail in guardrails:
             action = guardrail.apply(input=text)
 

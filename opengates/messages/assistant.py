@@ -10,5 +10,5 @@ class AssistantMessage(BaseMessage):
     def __init__(
         self,
         content: list[BaseMessageContent] | BaseMessageContent | str,
-    ):
+    ) -> None:
         super().__init__(role="assistant", content=content)

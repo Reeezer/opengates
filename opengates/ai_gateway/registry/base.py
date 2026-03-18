@@ -17,7 +17,7 @@ class BaseModelRegistry(ABC):
         self,
         model_name: str,
         factory: CompletionFactory,
-    ):
+    ) -> None:
         raise NotImplementedError
 
     @abstractmethod

@@ -14,7 +14,7 @@ class InMemoryPolicyResolver(BasePolicyResolver):
         group_policies: dict[str, ResolvedPolicy] | None = None,
         project_policies: dict[str, ResolvedPolicy] | None = None,
         user_policies: dict[str, ResolvedPolicy] | None = None,
-    ):
+    ) -> None:
         self.global_policy = global_policy
         self.group_policies = group_policies or {}
         self.project_policies = project_policies or {}

@@ -19,7 +19,7 @@ class BaseMessage(BaseModel, ABC):
         self,
         role: str,
         content: list[BaseMessageContent] | BaseMessageContent | str,
-    ):
+    ) -> None:
         super().__init__(role=role, content=self._format_content(content))
 
     def _format_content(

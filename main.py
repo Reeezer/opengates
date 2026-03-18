@@ -2,6 +2,7 @@ import dotenv
 
 from opengates.ai_gateway.context import RequestContext
 from opengates.ai_gateway.gateway import AIGateway
+from opengates.ai_gateway.observability.audit import InMemoryAuditSink
 from opengates.ai_gateway.policy.guardrails import (
     ForbiddenTermsGuardrail,
     GuardrailAction,
@@ -14,6 +15,9 @@ from opengates.models.completion import GoogleCompletion
 
 if __name__ == "__main__":
     dotenv.load_dotenv()
+
+    # Build audit sink (optional, for observability)
+    audit_sink = InMemoryAuditSink()
 
     # Build model registry
     registry = InMemoryModelRegistry()
@@ -39,6 +43,7 @@ if __name__ == "__main__":
     gateway = AIGateway(
         model_registry=registry,
         policy_resolver=resolver,
+        audit_sink=audit_sink,
     )
 
     # Request context + call
@@ -54,3 +59,7 @@ if __name__ == "__main__":
         history="What is the capital of France? forbidden",
     )
     print(response)
+
+    # Print audit logs
+    for event in audit_sink.read():
+        print(event)

@@ -10,5 +10,5 @@ class UserMessage(BaseMessage):
     def __init__(
         self,
         content: list[BaseMessageContent] | BaseMessageContent | str,
-    ):
+    ) -> None:
         super().__init__(role="user", content=content)

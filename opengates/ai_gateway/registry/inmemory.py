@@ -11,14 +11,14 @@ __all__ = [
 class InMemoryModelRegistry(BaseModelRegistry):
     def __init__(
         self,
-    ):
+    ) -> None:
         self._registry: dict[str, CompletionFactory] = {}
 
     def register(
         self,
         model_name: str,
         factory: CompletionFactory,
-    ):
+    ) -> None:
         if model_name in self._registry:
             raise ValueError(f"Model {model_name} is already registered")
         self._registry[model_name] = factory

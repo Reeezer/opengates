@@ -1,12 +1,13 @@
 import logging
 import os
 from abc import abstractmethod
-from typing import Generic, TypeVar
+from typing import Any, Generic, TypeVar
 
 import tenacity
 from pydantic import BaseModel, ConfigDict, PrivateAttr
 
 from opengates.messages import BaseMessage
+from opengates.models.completion.result import CompletionResult
 
 __all__ = [
     "BaseCompletion",
@@ -32,7 +33,7 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
         self,
         api_key_env_var: str,
         model_name: str,
-    ):
+    ) -> None:
         api_key = os.getenv(api_key_env_var)
         if not api_key:
             raise ValueError(
@@ -66,23 +67,31 @@ class BaseCompletion(BaseModel, Generic[ClientT]):
     def generate(
         self,
         history: list[BaseMessage],
-    ) -> dict[str, str]:
+    ) -> CompletionResult:
         history_raw = self._history_to_raw(history)
-        response = self._generate_logic(history_raw)
+        response_raw = self._generate_logic(history_raw)
+        response = self._parse_response(response_raw)
         return response
-
-    @abstractmethod
-    def _generate_logic(
-        self,
-        history_raw: list[dict],
-    ) -> dict[str, str]:
-        raise NotImplementedError
 
     def _history_to_raw(
         self,
         history: list[BaseMessage],
-    ) -> list[dict]:
+    ) -> list[dict[str, Any]]:
         return [
             msg.model_dump_json(exclude_none=True, serialize_as_any=True)
             for msg in history
         ]
+
+    @abstractmethod
+    def _generate_logic(
+        self,
+        history_raw: list[dict[str, Any]],
+    ) -> dict[str, Any]:
+        raise NotImplementedError
+
+    @abstractmethod
+    def _parse_response(
+        self,
+        response_raw: dict[str, Any],
+    ) -> CompletionResult:
+        raise NotImplementedError

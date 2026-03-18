@@ -3,6 +3,7 @@ from logging import getLogger
 from pydantic import BaseModel, ConfigDict
 
 from opengates.ai_gateway.context import RequestContext
+from opengates.ai_gateway.observability.audit import AuditEvent, BaseAuditSink
 from opengates.ai_gateway.policy.resolver import BasePolicyResolver
 from opengates.ai_gateway.registry import BaseModelRegistry
 from opengates.messages import BaseMessage, TextMessageContent, UserMessage
@@ -19,6 +20,7 @@ class AIGateway(BaseModel):
 
     model_registry: BaseModelRegistry
     policy_resolver: BasePolicyResolver
+    audit_sink: BaseAuditSink
 
     def generate(
         self,
@@ -44,6 +46,17 @@ class AIGateway(BaseModel):
         completion = self.model_registry.get(model_name=model_name)
         response = completion.generate(history_list)
         response_text = response.text
+
+        # Audit generation event
+        audit_event = AuditEvent(
+            request_context=context,
+            model_name=model_name,
+            payload={
+                "input_tokens": response.input_tokens,
+                "output_tokens": response.output_tokens,
+            },
+        )
+        self.audit_sink.write(audit_event)
 
         # Apply output guardrails
         policy.apply_output_guardrails(response_text)

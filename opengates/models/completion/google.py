@@ -1,8 +1,9 @@
-from typing import Literal
+from typing import Any, Literal
 
 from google import genai
 
 from opengates.models.completion.base import BaseCompletion
+from opengates.models.completion.result import CompletionResult
 
 __all__ = [
     "GoogleCompletion",
@@ -22,7 +23,7 @@ class GoogleCompletion(BaseCompletion[genai.Client]):
         self,
         api_key_env_var: str = "GOOGLE_API_KEY",
         model_name: MODELS = "gemini-2.5-flash-lite",
-    ):
+    ) -> None:
         super().__init__(
             api_key_env_var=api_key_env_var,
             model_name=model_name,
@@ -35,10 +36,26 @@ class GoogleCompletion(BaseCompletion[genai.Client]):
 
     def _generate_logic(
         self,
-        history_raw: list[dict],
-    ) -> dict[str, str]:
+        history_raw: list[dict[str, Any]],
+    ) -> dict[str, Any]:
         response = self.client.models.generate_content(
             model=self.model_name,
             contents=history_raw,
         )
         return response
+
+    def _parse_response(
+        self,
+        response_raw: dict[str, Any],
+    ) -> CompletionResult:
+        text = response_raw.text  # type: ignore
+        meta = getattr(response_raw, "usage_metadata", None)
+
+        input_tokens = getattr(meta, "prompt_token_count", 0) or 0
+        output_tokens = getattr(meta, "candidates_token_count", 0) or 0
+
+        return CompletionResult(
+            text=text,
+            input_tokens=input_tokens,
+            output_tokens=output_tokens,
+        )
